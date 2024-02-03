@@ -14,42 +14,55 @@ lowest level plays only one game per week.
 
 ## Release 1 Goals
 The goal for the first release is to create the functions and data structures 
-necessary to output a workable schedule in format, according to the rules for 
+necessary to output a workable schedule in csv format, according to the rules for 
 each level of play.  
 
-### Data
-#### Fields
-Each league level has fields suitable for play at that level.  Fields are identified
-by Location and Field.  For Example `Hamilton 1` indicates field 1 at Hamilton Park.  
-When a team hosts a game as the Home team, it must be played at a field belonging
-that league and that is appropriate to the level of play.
-#### Games per Week
-Each league level will play a specified number of games per week.  Usually 1 or 2.
-#### Team Names
-Each team has a name.  PALL teams are named `$level - $name`.  Teams from other
-leagues are named `$league - $level - $name`.
-#### Allowable Game Days
-Games can be played Mondays, Tuesdays, Wednesdays, Thursdays, and Saturdays.  
-Friday games are allowed but are highly discouraged.  No games on Sundays.
-#### Game Length
-Game length is determined by level.
+## Data
+Application data resides in two principal places:  A configuration file and a sqlite
+database.  
+### SQLite Database
+There is a sqlite database that is initiated and populated by `model/create_load`.
+The tables are as follows:  
+*  *Levels* - describes the various levels of play  
+    * ID
+    * level
+*  *Leagues* - describes the different area leagues that participate in the season.  
+    * ID
+    * League
+*  *Teams* - describes the different teams that play in the season.
+    * ID
+    * level_id (fk Levels)
+    * league_id (fk Leagues)
+    * name
+*  *Fields* - describes the location, field name, and home league for the fields represented in the schedule.
+    * ID
+    * location
+    * field
+    * league_id (fk Leagues)
+    * lights
+*  *field_level* - indicates which field-locations are appropriate for which levels of play.
+    * field_id (fk Fields)
+    * level_id (fk Levels)
+*  *games_per_week* - indicates, by level, how many games are played per week.
+    * level_id (fk Levels)
+    * gpw  
+*  *day_time* - indicates the day name, day number, and start time available for games
+    * ID
+    * day_text
+    * day_num
+    * start_time
 
-### Rules
-Schedules must obey these rules:  
-* Teams should play an equal number of Home games (games played at one of their fields) and Away games.
-* Each team should play every other team an equal number of times.  
-* Fields can only be used for one game at a time.  We cannot schedule more than one game per field at the same time.
-* There must be 30 minutes between the end of one game and the start of the next on that field.
-* For leagues that play two games per week, one of those games must be on Saturday.
-* Games must not be scheduled to begin after 5pm until after Daylight Savings Time begins, or unless the field has lights.
+### Configuration File
+The configuration file provides level name, level game length, allowable game days, and games per season for each level as well
+as league information, such as the date for opening day.  
 
-### Output
-The schedule output must be in csv format and include the following fields:
-* Date
-* Location and Field
-* Start Time
-* End Time
-* Home Team
-* Away Team
-* League Level
-* 
+## General Scheduling Rules  
+1.  Teams should play a roughly equal number of Home and Away Games.
+2.  Home teams host the game at a location associated with their home league.  This relationship is defined by the `league_id` column in Teams and the `league_id` column in Fields.
+3.  Games must be played at a field appropriate to their level.  This relationship is defined in the `field_level` table.
+4.  Games must be played on days allowable to their level.  This relationship is defined in  `allowable_days` in a level's object in the config file.
+5.  Games must be assigned a day/time timeslot from the `day_time` table.
+6.  Location-Field-Date-Time assignments must be unique.
+7.  Per level, each team should play every other team the same number of times.
+8.  Per level, each team should play a number of games equal to its level's `games_per_season` as defined in the config file.
+9. 
