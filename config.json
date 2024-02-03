@@ -1,0 +1,15 @@
+{
+  "levels": [
+    {
+      "name": "T-Ball",
+      "game_length_minutes": 60,
+      "allowable_days": ["Saturday"],
+      "games_per_season": 10
+    }
+  ],
+  "league": [
+    {
+      "opening_day": "February 24, 2024"
+    }
+  ]
+}
